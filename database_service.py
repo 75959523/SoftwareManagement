@@ -22,15 +22,14 @@ class DatabaseService:
 
     def validate_user(self, username, password):
         try:
-            # Retrieve the user's record from the database
             query = "SELECT username FROM user WHERE username = %s AND password = %s"
             self.cursor.execute(query, (username, password))
             user_data = self.cursor.fetchall()
 
             if user_data:
-                return True  # Validation successful (User record found)
+                return True
 
-            return False  # Validation failed (No user record found)
+            return False
 
         except mysql.connector.Error as err:
             print(f"Error: {err}")
@@ -75,7 +74,7 @@ class DatabaseService:
         return self.cursor.fetchone()
 
     def update_record(self, s_id):
-        self.cursor.execute("update software set dwn_cnt = dwn_cnt + 1 where id = %s", (s_id,))
+        self.cursor.execute("UPDATE software SET dwn_cnt = dwn_cnt + 1 WHERE id = %s", (s_id,))
         self.connection.commit()
 
     def get_user_type(self, username):
@@ -87,16 +86,6 @@ class DatabaseService:
             WHERE username = %s
         """, (username,))
         return self.cursor.fetchone()
-
-    def get_category(self):
-        self.cursor.execute("""
-            SELECT 
-            name
-            FROM 
-            category
-        """)
-        return [item[0] for item in self.cursor.fetchall()]
-
 
 
 

@@ -9,18 +9,15 @@ CORS(app)
 
 UPLOAD_FOLDER = 'data'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-db = database_service.DatabaseService(config_path='config/config.yml')
+db = database_service.DatabaseService()
 
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.form  # Access the data sent in the request body (form data)
-
-    # Get the username and password from the request data
+    data = request.form
     username = data.get('username')
     password = data.get('password')
 
-    # Perform validation logic (check username and password)
     if db.validate_user(username, password):
         return jsonify({"message": "Login successful!"}), 200
     else:
@@ -28,12 +25,11 @@ def login():
 
 
 @app.route('/api/upload', methods=['POST'])
-def upload_endpoint():
+def upload():
     data = request.form
     software_name = data.get('software_name')
     category = data.get('category')
     username = data.get('username')
-
     software_file = request.files['software_file']
     software_image = request.files['image']
 
@@ -46,14 +42,12 @@ def upload_endpoint():
                         os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename),
                         os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename))
 
-    return jsonify({"message": "上传成功！", "success": True}), 200
+    return jsonify({"message": "Upload successful!", "success": True}), 200
 
 
 @app.route('/api/software_list', methods=['POST'])
 def get_software_list():
-    # Call the get_list method to fetch data from the database
     software_list = db.get_list()
-    # Return the list of software as a JSON response
     return jsonify(software_list)
 
 
@@ -62,7 +56,7 @@ def delete_record():
     data = request.form
     s_id = data.get("id")
     db.delete_record(s_id)
-    return jsonify({"message": "删除成功！", "success": True}), 200
+    return jsonify({"message": "Delete successful!"}), 200
 
 
 @app.route('/api/download', methods=['GET'])
@@ -89,12 +83,6 @@ def get_user_type():
     username = data.get("username")
     user_type = db.get_user_type(username)
     return jsonify(user_type)
-
-
-@app.route('/api/get_category', methods=['POST'])
-def get_category():
-    result = db.get_category()
-    return jsonify(result)
 
 
 if __name__ == "__main__":
