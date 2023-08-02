@@ -1,6 +1,6 @@
 
     let currentPage = 1;
-    const pageSize = 6;
+    const pageSize = 8;
     let totalRecords;
     let totalPages;
     let allData;
@@ -65,18 +65,18 @@
             const row = document.createElement('tr');
 
             const nameCell = document.createElement('td');
-            nameCell.style.display = 'flex'; // 使用flex布局
-            nameCell.style.alignItems = 'center'; // 垂直居中
-            nameCell.style.justifyContent = 'center'; // 水平居中
+            // nameCell.style.display = 'flex'; // 使用flex布局
+            // nameCell.style.alignItems = 'center'; // 垂直居中
+            // nameCell.style.justifyContent = 'center'; // 水平居中
 
-            const img = document.createElement('img');
-            img.src = 'http://127.0.0.1:8088/api/downloadImg?url=' + encodeURIComponent(item.image_path);
-            img.style.width = '50px'; // 设置图片宽度
-            img.style.height = '50px'; // 设置图片高度
-            img.style.objectFit = 'contain'; // 使图片始终保持在单元格内部
+            // const img = document.createElement('img');
+            // img.src = 'http://127.0.0.1:8088/api/downloadImg?url=' + encodeURIComponent(item.image_path);
+            // img.style.width = '50px'; // 设置图片宽度
+            // img.style.height = '50px'; // 设置图片高度
+            // img.style.objectFit = 'contain'; // 使图片始终保持在单元格内部
 
             nameCell.textContent = item.s_name;
-            nameCell.appendChild(img);
+            //nameCell.appendChild(img);
             row.appendChild(nameCell);
 
             const categoryCell = document.createElement('td');
@@ -90,6 +90,10 @@
             const timeCell = document.createElement('td');
             timeCell.textContent = item.upload_time;
             row.appendChild(timeCell);
+
+            const fileCell = document.createElement('td');
+            fileCell.textContent = item.file_path.split('data/')[1];
+            row.appendChild(fileCell);
 
             if(userType === 1) {
                 const downloadCell = document.createElement('td');

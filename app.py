@@ -31,16 +31,17 @@ def upload():
     category = data.get('category')
     username = data.get('username')
     software_file = request.files['software_file']
-    software_image = request.files['image']
+    # software_image = request.files['image']
 
     software_file.save(os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename))
-    software_image.save(os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename))
+    # software_image.save(os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename))
 
     db.save_to_database(software_name,
                         category,
                         username,
-                        os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename),
-                        os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename))
+                        os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename)
+                        # ,os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename)
+                        )
 
     return jsonify({"message": "Upload successful!", "success": True}), 200
 

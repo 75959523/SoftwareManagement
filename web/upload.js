@@ -55,7 +55,7 @@ function openUploadForm() {
     uploadForm.appendChild(nameInput);
 
     const categorySelect = document.createElement('select');
-    ['桌面', '网络', '安全', '数据中心'].forEach(function(category) {
+    ['应用', '数据', '娱乐'].forEach(function(category) {
         const option = document.createElement('option');
         option.value = category;
         option.textContent = category;
@@ -76,19 +76,19 @@ function openUploadForm() {
         fileInputLabel.textContent = fileName ? '选择文件: ' + fileName : '选择文件';
     };
 
-    const imageInputLabel = document.createElement('label');
-    imageInputLabel.textContent = '选择图片';
-    uploadForm.appendChild(imageInputLabel);
+    // const imageInputLabel = document.createElement('label');
+    // imageInputLabel.textContent = '选择图片';
+    // uploadForm.appendChild(imageInputLabel);
+    //
+    // const imageInput = document.createElement('input');
+    // imageInput.type = 'file';
+    // imageInput.accept = 'image/*';
+    // imageInputLabel.appendChild(imageInput);
 
-    const imageInput = document.createElement('input');
-    imageInput.type = 'file';
-    imageInput.accept = 'image/*';
-    imageInputLabel.appendChild(imageInput);
-
-    imageInput.onchange = function() {
-        const fileName = this.value.split('\\').pop();
-        imageInputLabel.textContent = fileName ? '选择图片: ' + fileName : '选择图片';
-    };
+    // imageInput.onchange = function() {
+    //     const fileName = this.value.split('\\').pop();
+    //     imageInputLabel.textContent = fileName ? '选择图片: ' + fileName : '选择图片';
+    // };
 
     const errorMessage = document.createElement('p');
     errorMessage.className = 'error-message';
@@ -102,8 +102,8 @@ function openUploadForm() {
             errorMessage.textContent = '软件名称不能为空！';
             return;
         }
-        if (!fileInput.value || !imageInput.value) {
-            errorMessage.textContent = '请确保您已选择了软件文件和图片！';
+        if (!fileInput.value) {
+            errorMessage.textContent = '文件不能为空！';
             return;
         }
         errorMessage.textContent = '';
@@ -111,29 +111,70 @@ function openUploadForm() {
         formData.append('software_name', nameInput.value);
         formData.append('category', categorySelect.value);
         formData.append('software_file', fileInput.files[0]);
-        formData.append('image', imageInput.files[0]);
+        //formData.append('image', imageInput.files[0]);
         formData.append('username', encodeURIComponent(username));
 
-        fetch('http://127.0.0.1:8088/api/upload', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            errorMessage.textContent = data.message;
-            if (data.success) {
-                alert('上传成功！');
-                uploadWindow.close();
-                window.location.reload();
+        progressBarContainer.style.display = 'block';
 
+        let xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            let progress = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressBarText.textContent = `${progress}%`;
+        }});
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                let response = JSON.parse(xhr.responseText);
+                errorMessage.textContent = response.message;
+                if (response.success) {
+                    setTimeout(function() {
+                        uploadWindow.close();
+                        window.location.reload();
+                    }, 1000);
+                }
             }
-        })
-        .catch(error => {
+        }
+
+        xhr.onerror = function (error) {
             console.error('Error:', error);
             errorMessage.textContent = '上传失败！';
-        });
+        };
+
+        xhr.open('POST', 'http://127.0.0.1:8088/api/upload', true);
+        xhr.send(formData);
     };
+
     uploadForm.appendChild(uploadButton);
 
+    const progressBarContainer = document.createElement('div');
+    progressBarContainer.className = 'progress-bar-container';
+    progressBarContainer.style.position = 'relative';
+    progressBarContainer.style.width = '100%';
+    progressBarContainer.style.height = '20px';
+    progressBarContainer.style.backgroundColor = 'grey';
+    progressBarContainer.style.display = 'none';
+
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';
+    progressBar.style.width = '0';
+    progressBar.style.height = '100%';
+    progressBar.style.backgroundColor = 'orange';
+
+    const progressBarText = document.createElement('span');
+    progressBarText.className = 'progress-bar-text';
+    progressBarText.style.position = 'relative';
+    progressBarText.style.width = '100%';
+    progressBarText.style.textAlign = 'center';
+    progressBarText.style.color = 'black';
+    progressBarText.style.lineHeight = '20px';
+
+    progressBar.appendChild(progressBarText);
+    progressBarContainer.appendChild(progressBar);
+    uploadForm.appendChild(progressBarContainer);
+    uploadForm.appendChild(progressBarText);
+
     uploadWindow.document.body.appendChild(uploadForm);
+
 }

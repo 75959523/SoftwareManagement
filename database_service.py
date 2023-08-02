@@ -35,10 +35,10 @@ class DatabaseService:
             print(f"Error: {err}")
             return False
 
-    def save_to_database(self, software_name, category, username, file_path, image_path):
+    def save_to_database(self, software_name, category, username, file_path):
         upload_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sql = "INSERT INTO software (s_name, category, upload_user, upload_time, dwn_cnt, file_path, image_path) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        val = (software_name, category, username, upload_time, 0, file_path, image_path)
+        sql = "INSERT INTO software (s_name, category, upload_user, upload_time, dwn_cnt, file_path) VALUES (%s, %s, %s, %s, %s, %s)"
+        val = (software_name, category, username, upload_time, 0, file_path)
         self.cursor.execute(sql, val)
         self.connection.commit()
 
