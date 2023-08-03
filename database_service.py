@@ -2,6 +2,7 @@ import datetime
 
 import mysql.connector
 import yaml
+from mysql.connector import pooling
 
 
 class DatabaseService:
@@ -10,21 +11,35 @@ class DatabaseService:
             config = yaml.safe_load(file)
 
         db_config = config['database']
+        self.pool = self.create_pool(db_config)
 
-        self.connection = mysql.connector.connect(
+    def create_pool(self, db_config):
+        return pooling.MySQLConnectionPool(
+            pool_name="mypool",
+            pool_size=5,
+            pool_reset_session=True,
             host=db_config['host'],
             port=db_config['port'],
             user=db_config['user'],
             password=db_config['password'],
             database=db_config['database']
         )
-        self.cursor = self.connection.cursor()
+
+    def get_connection(self):
+        return self.pool.get_connection()
+
+    def close(self, connection):
+        connection.close()
 
     def validate_user(self, username, password):
         try:
             query = "SELECT username FROM user WHERE username = %s AND password = %s"
-            self.cursor.execute(query, (username, password))
-            user_data = self.cursor.fetchall()
+            connection = self.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(query, (username, password))
+            user_data = cursor.fetchall()
+            cursor.close()
+            connection.close()
 
             if user_data:
                 return True
@@ -35,15 +50,21 @@ class DatabaseService:
             print(f"Error: {err}")
             return False
 
-    def save_to_database(self, software_name, category, username, file_path):
+    def save_to_database(self, software_name, category, username, file_path, size):
         upload_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sql = "INSERT INTO software (s_name, category, upload_user, upload_time, dwn_cnt, file_path) VALUES (%s, %s, %s, %s, %s, %s)"
-        val = (software_name, category, username, upload_time, 0, file_path)
-        self.cursor.execute(sql, val)
-        self.connection.commit()
+        sql = "INSERT INTO software (s_name, category, upload_user, upload_time, dwn_cnt, file_path, size) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        val = (software_name, category, username, upload_time, 0, file_path, size)
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, val)
+        connection.commit()
+        cursor.close()
+        connection.close()
 
     def get_list(self):
-        self.cursor.execute("""
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
             SELECT 
             id,
             s_name,
@@ -52,40 +73,62 @@ class DatabaseService:
             upload_time,
             dwn_cnt,
             file_path,
-            image_path
+            image_path,
+            size
             FROM 
             software order by id
         """)
-        columns = [column[0] for column in self.cursor.description]
-        return [dict(zip(columns, row)) for row in self.cursor.fetchall()]
+        columns = [column[0] for column in cursor.description]
+        result = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        cursor.close()
+        connection.close()
+        return result
 
     def delete_record(self, record_id):
-        self.cursor.execute("DELETE FROM software WHERE id = %s", (record_id,))
-        self.connection.commit()
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM software WHERE id = %s", (record_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
 
     def download_file(self, s_id):
-        self.cursor.execute("""
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
             SELECT 
             file_path
             FROM 
             software
             WHERE id = %s
         """, (s_id,))
-        return self.cursor.fetchone()
+        result = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return result
 
     def update_record(self, s_id):
-        self.cursor.execute("UPDATE software SET dwn_cnt = dwn_cnt + 1 WHERE id = %s", (s_id,))
-        self.connection.commit()
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE software SET dwn_cnt = dwn_cnt + 1 WHERE id = %s", (s_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
 
     def get_user_type(self, username):
-        self.cursor.execute("""
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
             SELECT 
             type
             FROM 
             user
             WHERE username = %s
         """, (username,))
-        return self.cursor.fetchone()
+        result = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return result
 
 
 

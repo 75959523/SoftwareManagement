@@ -95,6 +95,10 @@
             fileCell.textContent = item.file_path.split('data/')[1];
             row.appendChild(fileCell);
 
+            const sizeCell = document.createElement('td');
+            sizeCell.textContent = item.size;
+            row.appendChild(sizeCell);
+
             if(userType === 1) {
                 const downloadCell = document.createElement('td');
                 downloadCell.textContent = item.dwn_cnt;
@@ -145,10 +149,7 @@
 
     function downloadFile(id) {
         const url = 'http://127.0.0.1:8088/api/download?id=' + id;
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'filename';
-        a.click();
+        window.open(url, '_blank');
     }
 
     function deleteRow(id) {

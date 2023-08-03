@@ -36,13 +36,17 @@ def upload():
     software_file.save(os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename))
     # software_image.save(os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename))
 
+    software_file_path = os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename)
+    file_size = os.path.getsize(software_file_path)
+    size_mb = str(round(file_size / (1024 * 1024), 2)) + ' M'
+
     db.save_to_database(software_name,
                         category,
                         username,
-                        os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename)
+                        os.path.join(app.config['UPLOAD_FOLDER'], software_file.filename),
+                        size_mb
                         # ,os.path.join(app.config['UPLOAD_FOLDER'], software_image.filename)
                         )
-
     return jsonify({"message": "Upload successful!", "success": True}), 200
 
 
